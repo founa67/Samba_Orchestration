@@ -1,0 +1,63 @@
+version: 2
+
+sources:
+  - name: fivetran_kenya
+    database: FIVETRAN_DB
+    schema: FIVETRAN_SCHEMA
+    tables:
+      - name: KENYA_HOLIDAYS
+        description: "Raw holidays table loaded by Fivetran."
+
+models:
+  - name: holidays
+    description: "Cleaned and canonicalized Kenya public holidays (final model produced from FIVETRAN_DB.FIVETRAN_SCHEMA.KENYA_HOLIDAYS)."
+    columns:
+      - name: holiday_key
+        description: "Deterministic unique id for a holiday (md5 of date + name)."
+        tests:
+          - unique
+          - not_null
+
+      - name: holiday_date
+        description: "The canonical holiday date (DATE)."
+        tests:
+          - not_null
+
+      - name: observed_date
+        description: "Date the holiday was observed if different from the actual holiday_date."
+
+      - name: holiday_name
+        description: "Normalized holiday name (uppercased & trimmed)."
+        tests:
+          - not_null
+
+      - name: local_name
+        description: "Local/alternate name for the holiday, if available."
+
+      - name: holiday_type
+        description: "Type/category of the holiday (e.g., Public, Religious, Bank, Regional)."
+        tests:
+          - accepted_values:
+              values: ['Religious', 'Public', 'Bank', 'Regional']
+              quote: false
+
+      - name: year
+        description: "Integer year part of holiday_date."
+
+      - name: month
+        description: "Integer month part of holiday_date."
+
+      - name: day
+        description: "Integer day part of holiday_date."
+
+      - name: day_name
+        description: "Weekday name for holiday_date (e.g., Monday)."
+
+      - name: is_weekend
+        description: "Flag (1/0) indicating whether holiday falls on weekend."
+
+      - name: is_observed
+        description: "Flag (1/0) if the observed_date differs from holiday_date."
+
+      - name: dbt_processed_at
+        description: "Timestamp when dbt last processed/loaded the row."
